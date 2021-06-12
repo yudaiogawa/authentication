@@ -7,7 +7,7 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 @Singleton
-class AuthController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
+class AuthController @Inject()(secureAction: SecureAction, val controllerComponents: ControllerComponents) extends BaseController {
 
   def save() = Action { request: Request[AnyContent] =>
     val body: AnyContent = request.body
@@ -22,9 +22,8 @@ class AuthController @Inject()(val controllerComponents: ControllerComponents) e
   }
 
   def accountHome = {
-    SecureAction.async {
-      implicit request =>
-        Future.successful(Ok("Hello!! " + request.eMail))
+    secureAction.async { implicit request =>
+      Future.successful(Ok("Hello!! " + request.eMail))
     }
   }
 }
