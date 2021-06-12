@@ -1,7 +1,6 @@
 package controllers
 
 import javax.inject._
-import play.api.libs.json.JsValue
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -9,11 +8,11 @@ import scala.concurrent.Future
 @Singleton
 class AuthController @Inject()(secureAction: SecureAction, val controllerComponents: ControllerComponents) extends BaseController {
 
-  def save() = Action { request: Request[AnyContent] =>
-    val body: AnyContent = request.body
-    val jsonBody: Option[JsValue] = body.asJson
-    jsonBody
-      .map {json =>
+  def signup(): Action[AnyContent] = Action { implicit request =>
+    request
+      .body
+      .asJson
+      .map { json =>
         Ok("signup: " + (json \ "e-mail").as[String] + ", " + (json \ "password").as[String])
       }
       .getOrElse {
@@ -21,7 +20,7 @@ class AuthController @Inject()(secureAction: SecureAction, val controllerCompone
       }
   }
 
-  def accountHome = {
+  def signin(): Action[AnyContent] = {
     secureAction.async { implicit request =>
       Future.successful(Ok("Hello!! " + request.eMail))
     }

@@ -18,12 +18,15 @@ class SecureAction @Inject() (parsers: PlayBodyParsers, ec: ExecutionContext) ex
     ec
 
   override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] = {
-      val eMail = request.headers.get("e-mail").fold("")(identity)
-      val password = request.headers.get("password").fold("")(identity)
-      if (AccountService.getAllAccounts().contains(Account(eMail, password))) {
-        block(UserRequest(eMail, password, request))
-      } else {
-        Future.successful(Unauthorized("Unauthorized access!!"))
-      }
+    val eMail = request.headers.get("e-mail").fold("")(identity)
+    val password = request.headers.get("password").fold("")(identity)
+    // 0. sign up / in されたらsessionを返す
+
+    // secure action
+    if (AccountService.getAllAccounts().contains(Account(eMail, password))) {
+      block(UserRequest(eMail, password, request))
+    } else {
+      Future.successful(Unauthorized("Unauthorized access!!"))
     }
+  }
 }
