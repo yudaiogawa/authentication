@@ -22,7 +22,7 @@ class AuthController @Inject()(secureAction: SecureAction, val controllerCompone
 
   def signin(): Action[AnyContent] = {
     secureAction.async { implicit request =>
-      Future.successful(Ok("Hello!! " + request.eMail))
+      Future.successful(Ok(s"Hello!! ${request.eMail}. Session id is ${request.sessionId}."))
     }
   }
 }

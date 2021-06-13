@@ -7,7 +7,7 @@ import play.api.mvc.{ActionBuilder, AnyContent, BodyParser, PlayBodyParsers, Req
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-case class UserRequest[A](eMail: String, password: String, request: Request[A]) extends WrappedRequest[A](request)
+case class UserRequest[A](sessionId: String, eMail: String, password: String, request: Request[A]) extends WrappedRequest[A](request)
 
 class SecureAction @Inject() (parsers: PlayBodyParsers, ec: ExecutionContext) extends ActionBuilder[UserRequest, AnyContent] with Results {
 
@@ -21,10 +21,11 @@ class SecureAction @Inject() (parsers: PlayBodyParsers, ec: ExecutionContext) ex
     val eMail = request.headers.get("e-mail").fold("")(identity)
     val password = request.headers.get("password").fold("")(identity)
     // 0. sign up / in されたらsessionを返す
+    val sessionId = request.headers.get("e-mail").fold("")(identity)
 
     // secure action
     if (AccountService.getAllAccounts().contains(Account(eMail, password))) {
-      block(UserRequest(eMail, password, request))
+      block(UserRequest(sessionId, eMail, password, request))
     } else {
       Future.successful(Unauthorized("Unauthorized access!!"))
     }
