@@ -14,10 +14,12 @@ class AuthControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting
 
     "signup with posting the json" in {
       val json = Json.parse("""{"e-mail": "alice@example.com", "password": "yJ2Z#bL7vi2u@RDe"}""")
-      val req = FakeRequest(POST, "/signup").withHeaders((CONTENT_TYPE, "application/json")).withJsonBody(json)
-      val signup = call(controller.signup(), req)
+      val response = controller
+        .signup()
+        .apply(FakeRequest(POST, "/signup").withJsonBody(json))
 
-      status(signup) mustBe OK
+      status(response) mustBe OK
+      contentAsString(response) must include("alice@example.com")
     }
 
     "signin with the json" in {
