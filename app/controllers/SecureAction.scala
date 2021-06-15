@@ -1,15 +1,15 @@
 package controllers
 
-import domains.Account
-import services.AccountService
+import play.api.cache.AsyncCacheApi
 import play.api.mvc.{ActionBuilder, AnyContent, BodyParser, PlayBodyParsers, Request, Result, Results, WrappedRequest}
+import services.AccountService
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 case class UserRequest[A](sessionId: String, eMail: String, password: String, request: Request[A]) extends WrappedRequest[A](request)
 
-class SecureAction @Inject() (parsers: PlayBodyParsers, ec: ExecutionContext) extends ActionBuilder[UserRequest, AnyContent] with Results {
+class SecureAction @Inject() (parsers: PlayBodyParsers, cache: AsyncCacheApi, implicit val ec: ExecutionContext) extends ActionBuilder[UserRequest, AnyContent] with Results {
 
   override def parser: BodyParser[AnyContent] =
     parsers.default
@@ -18,16 +18,17 @@ class SecureAction @Inject() (parsers: PlayBodyParsers, ec: ExecutionContext) ex
     ec
 
   override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] = {
-    val eMail = request.headers.get("e-mail").fold("")(identity)
-    val password = request.headers.get("password").fold("")(identity)
-    // 0. sign up / in されたらsessionを返す
-    val sessionId = request.headers.get("e-mail").fold("")(identity)
+    request.session.get("sessionId").map { sessionId =>
+      cache.get[String](sessionId).flatMap { optEmail =>
+        val result = for {
+          email <- optEmail // Option[String]
+          account <- AccountService.findByEmail(email) // Option[Account]
+        } yield block(UserRequest(account.sessionId, account.eMail, account.password, request))
 
-    // secure action
-    if (AccountService.getAllAccounts().contains(Account(eMail, password))) {
-      block(UserRequest(sessionId, eMail, password, request))
-    } else {
+        result.getOrElse(Future.successful(Unauthorized("Unauthorized access!!"))) // Option[Result]
+      }
+    }.getOrElse(
       Future.successful(Unauthorized("Unauthorized access!!"))
-    }
+    )
   }
 }
