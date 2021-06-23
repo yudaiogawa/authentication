@@ -22,13 +22,12 @@ class AuthControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting
       contentAsString(response) must include("alice@example.com")
     }
 
-    "sign-in with session" in {
+    "me with session" in {
       val response = controller
         .me()
-        .apply(FakeRequest(GET, "/signin").withSession("sessionId" -> "123456789"))
+        .apply(FakeRequest(GET, "/me").withSession("sessionId" -> "123456789"))
 
-      status(response) mustBe OK
-      contentAsString(response) must include("alice@example.com")
+      status(response) mustBe UNAUTHORIZED
     }
   }
 }
