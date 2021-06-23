@@ -29,5 +29,9 @@ class AuthControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting
 
       status(response) mustBe UNAUTHORIZED
     }
+
+    // TODO:
+    //   * meで200が返却されるテスト
+    //   * signupしてcookie取得して、cookieにセットされたsessionIdを利用してmeにアクセスする。
   }
 }
