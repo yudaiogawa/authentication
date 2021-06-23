@@ -21,11 +21,11 @@ class SecureAction @Inject() (parsers: PlayBodyParsers, cache: AsyncCacheApi, im
     request.session.get("sessionId").map { sessionId =>
       cache.get[String](sessionId).flatMap { optEmail =>
         val result = for {
-          email <- optEmail // Option[String]
-          account <- AccountService.findByEmail(email) // Option[Account]
-        } yield block(UserRequest(account.sessionId, account.eMail, account.password, request))
+          email <- optEmail
+          account <- AccountService.findByEmail(email)
+        } yield block(UserRequest(sessionId, account.eMail, account.password, request))
 
-        result.getOrElse(Future.successful(Unauthorized("Unauthorized access!!"))) // Option[Result]
+        result.getOrElse(Future.successful(Unauthorized("Unauthorized access!!")))
       }
     }.getOrElse(
       Future.successful(Unauthorized("Unauthorized access!!"))

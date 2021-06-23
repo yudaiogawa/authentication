@@ -12,8 +12,8 @@ class AuthControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting
   "AuthController Test" should {
     def controller = inject[AuthController]
 
-    "signup with posting the json" in {
-      val json = Json.parse("""{"e-mail": "alice@example.com", "password": "yJ2Z#bL7vi2u@RDe"}""")
+    "sign-up with posting the json" in {
+      val json = Json.parse("""{"e-mail": "alice@example.com"}""")
       val response = controller
         .signup()
         .apply(FakeRequest(POST, "/signup").withJsonBody(json))
@@ -22,12 +22,13 @@ class AuthControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting
       contentAsString(response) must include("alice@example.com")
     }
 
-    "signin with the json" in {
-      val json = Json.parse("""{"e-mail": "alice@example.com", "password": "yJ2Z#bL7vi2u@RDe"}""")
-      val req = FakeRequest(GET, "/signin").withHeaders((CONTENT_TYPE, "application/json")).withJsonBody(json)
-      val signin = call(controller.signin(), req)
+    "sign-in with session" in {
+      val response = controller
+        .me()
+        .apply(FakeRequest(GET, "/signin").withSession("sessionId" -> "123456789"))
 
-      status(signin) mustBe UNAUTHORIZED
+      status(response) mustBe OK
+      contentAsString(response) must include("alice@example.com")
     }
   }
 }
