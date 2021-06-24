@@ -1,4 +1,4 @@
-name := """authentication"""
+name := """play-authentication"""
 organization := "com.example"
 
 version := "1.0-SNAPSHOT"
